@@ -1,0 +1,22 @@
+{
+  "name": "demo-plugin",
+  "version": "1.0.0",
+  "description": "🦈 鲨鲨工具的示例插件",
+  "icon": "🦈",
+  "author": "Shark Tools",
+  "main": "index.html",
+  "features": [
+    {
+      "code": "hello",
+      "explain": "打招呼",
+      "cmds": ["hello", "你好"],
+      "icon": "👋"
+    },
+    {
+      "code": "time",
+      "explain": "显示当前时间",
+      "cmds": ["time", "时间"],
+      "icon": "🕐"
+    }
+  ]
+}
