@@ -106,8 +106,44 @@ async function loadPlugin(pluginName) {
       pluginTitle.textContent = `🧩 ${pluginName}`;
       pluginViewContainer.classList.add('active');
       
-      // 加载插件
-      pluginView.src = `file://${pluginPath}/index.html`;
+    // 加载插件
+    pluginView.src = `file://${pluginPath}/index.html`;
+
+    // 初始化 PixiJS 和 Live2D 显示
+    const app = new PIXI.Application({
+      width: window.innerWidth,
+      height: window.innerHeight,
+      backgroundColor: 0x00000000,
+      autoStart: true,
+      resize: true
+    });
+    document.body.appendChild(app.view);
+
+    // 加载 Live2D 模型
+    const live2d = new Live2DModel({
+      container: 'live2d-container',
+      model: 'model.json',
+      transparent: true
+    });
+    live2d.load();
+    
+    // 初始化 PixiJS 和 Live2D 显示
+    const app = new PIXI.Application({
+      width: window.innerWidth,
+      height: window.innerHeight,
+      backgroundColor: 0x00000000,
+      autoStart: true,
+      resize: true
+    });
+    document.body.appendChild(app.view);
+    
+    // 加载 Live2D 模型
+    const live2d = new Live2DModel({
+      container: 'live2d-container',
+      model: 'model.json',
+      transparent: true
+    });
+    live2d.load();
       
       // 监听加载完成
       pluginView.addEventListener('dom-ready', () => {
@@ -120,9 +156,41 @@ async function loadPlugin(pluginName) {
         `);
       });
       
-      // 隐藏列表，显示插件
-      document.querySelector('.content-area').style.display = 'none';
-      document.querySelector('.tabs').style.display = 'none';
+    // 隐藏列表，显示插件
+    document.querySelector('.content-area').style.display = 'none';
+    document.querySelector('.tabs').style.display = 'none';
+
+    // 添加 Live2D 显示容器
+    const live2dContainer = document.createElement('div');
+    live2dContainer.id = 'live2d-container';
+    live2dContainer.style.position = 'absolute';
+    live2dContainer.style.top = '0';
+    live2dContainer.style.left = '0';
+    live2dContainer.style.width = '100%';
+    live2dContainer.style.height = '100%';
+    live2dContainer.style.backgroundColor = 'transparent';
+    live2dContainer.style.display = 'flex';
+    live2dContainer.style.justifyContent = 'center';
+    live2dContainer.style.alignItems = 'center';
+    live2dContainer.style.zIndex = '100';
+    live2dContainer.style.pointerEvents = 'none';
+    document.body.appendChild(live2dContainer);
+
+    // 添加 Live2D 显示容器
+    const live2dContainer = document.createElement('div');
+    live2dContainer.id = 'live2d-container';
+    live2dContainer.style.position = 'absolute';
+    live2dContainer.style.top = '0';
+    live2dContainer.style.left = '0';
+    live2dContainer.style.width = '100%';
+    live2dContainer.style.height = '100%';
+    live2dContainer.style.backgroundColor = 'transparent';
+    live2dContainer.style.display = 'flex';
+    live2dContainer.style.justifyContent = 'center';
+    live2dContainer.style.alignItems = 'center';
+    live2dContainer.style.zIndex = '100';
+    live2dContainer.style.pointerEvents = 'none';
+    document.body.appendChild(live2dContainer);
     } else {
       console.warn(`插件未找到: ${pluginName}`);
     }

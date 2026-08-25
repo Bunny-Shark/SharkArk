@@ -71,7 +71,17 @@
   
   <div id="output">💡 点击按钮试试</div>
 
+<!-- Live2D 显示容器 -->
+<div id="live2d-container"></div>
+
   <script>
+    // 确保 sharkPlugin API 可用
+    if (window.sharkPlugin) {
+      window.sharkPlugin.pluginReady('demo-plugin');
+      console.log('🦈 示例插件已就绪，API 可用:', window.sharkPlugin);
+    } else {
+      console.log('⚠️ sharkPlugin API 不可用，请检查 webview 配置');
+    }
     function sayHello() {
       document.getElementById('output').textContent = '👋 你好！我是鲨鲨工具的示例插件！';
     }
@@ -96,5 +106,24 @@
       console.log('⚠️ sharkPlugin API 不可用，请检查 webview 配置');
     }
   </script>
+<script>
+  // 确保 Live2D 显示容器存在
+  if (!document.getElementById('live2d-container')) {
+    const container = document.createElement('div');
+    container.id = 'live2d-container';
+    container.style.position = 'absolute';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.backgroundColor = 'transparent';
+    container.style.display = 'flex';
+    container.style.justifyContent = 'center';
+    container.style.alignItems = 'center';
+    container.style.zIndex = '99';
+    container.style.pointerEvents = 'none';
+    document.body.appendChild(container);
+  }
+</script>
 </body>
 </html>

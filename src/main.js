@@ -1,11 +1,17 @@
 // src/main.js
-const { app, BrowserWindow, ipcMain, globalShortcut, shell } = require('electron');
-const path = require('path');
-const fs = require('fs');
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  globalShortcut,
+  shell,
+} = require("electron");
+const path = require("path");
+const fs = require("fs");
 
 // ---------- 配置 ----------
-const APP_NAME = '鲨鲨工具';
-const PLUGINS_DIR = path.join(__dirname, '..', 'plugins');
+const APP_NAME = "鲨鲨工具";
+const PLUGINS_DIR = path.join(__dirname, "..", "plugins");
 
 // ---------- 插件管理系统 ----------
 const plugins = [];
@@ -17,44 +23,49 @@ function loadPlugins() {
     return;
   }
 
-  const dirs = fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
-    .filter(d => d.isDirectory());
+  const dirs = fs
+    .readdirSync(PLUGINS_DIR, { withFileTypes: true })
+    .filter((d) => d.isDirectory());
 
   for (const dir of dirs) {
-    const manifestPath = path.join(PLUGINS_DIR, dir.name, 'plugin.json');
+    const manifestPath = path.join(PLUGINS_DIR, dir.name, "plugin.json");
     if (fs.existsSync(manifestPath)) {
       try {
-        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
         plugins.push({
           name: dir.name,
           manifest,
-          path: path.join(PLUGINS_DIR, dir.name)
+          path: path.join(PLUGINS_DIR, dir.name),
         });
-        console.log(`[${APP_NAME}] ✅ 加载插件: ${manifest.name} v${manifest.version}`);
+        console.log(
+          `[${APP_NAME}] ✅ 加载插件: ${manifest.name} v${manifest.version}`,
+        );
       } catch (error) {
         console.error(`[${APP_NAME}] ❌ 加载失败 ${dir.name}:`, error.message);
       }
     }
   }
-  
+
   console.log(`[${APP_NAME}] 共加载 ${plugins.length} 个插件`);
 }
 
 // ---------- IPC 通信 ----------
 // 获取所有命令
-ipcMain.handle('shark:get-commands', () => {
+ipcMain.handle("shark:get-commands", () => {
   const commands = [];
   for (const plugin of plugins) {
     if (plugin.manifest.features) {
       for (const feature of plugin.manifest.features) {
         if (feature.cmds) {
-          commands.push(...feature.cmds.map(cmd => ({
-            cmd,
-            plugin: plugin.manifest.name,
-            explain: feature.explain,
-            code: feature.code,
-            icon: feature.icon || '🧩'
-          })));
+          commands.push(
+            ...feature.cmds.map((cmd) => ({
+              cmd,
+              plugin: plugin.manifest.name,
+              explain: feature.explain,
+              code: feature.code,
+              icon: feature.icon || "🧩",
+            })),
+          );
         }
       }
     }
@@ -63,29 +74,29 @@ ipcMain.handle('shark:get-commands', () => {
 });
 
 // 获取插件列表
-ipcMain.handle('shark:get-plugins', () => {
-  return plugins.map(p => ({
+ipcMain.handle("shark:get-plugins", () => {
+  return plugins.map((p) => ({
     name: p.manifest.name,
     version: p.manifest.version,
-    description: p.manifest.description || '',
-    icon: p.manifest.icon || '🧩',
-    author: p.manifest.author || ''
+    description: p.manifest.description || "Live2D Model Loaded with Transparent Background",
+    icon: p.manifest.icon || "🧩",
+    author: p.manifest.author || "",
   }));
 });
 
 // 获取插件路径
-ipcMain.handle('shark:get-plugin-path', (event, pluginName) => {
-  const plugin = plugins.find(p => p.name === pluginName);
+ipcMain.handle("shark:get-plugin-path", (event, pluginName) => {
+  const plugin = plugins.find((p) => p.name === pluginName);
   return plugin ? plugin.path : null;
 });
 
 // 插件就绪通知
-ipcMain.on('shark:plugin-ready', (event, pluginName) => {
+ipcMain.on("shark:plugin-ready", (event, pluginName) => {
   console.log(`[${APP_NAME}] 📢 ${pluginName} 已就绪`);
 });
 
 // 窗口关闭通知
-ipcMain.on('shark:close-window', () => {
+ipcMain.on("shark:close-window", () => {
   const win = BrowserWindow.getFocusedWindow();
   if (win) win.hide();
 });
@@ -100,35 +111,62 @@ function createWindow() {
     minWidth: 400,
     minHeight: 300,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
       contextIsolation: true,
+      webPreferences: {
+        experimentalFeatures: true,
+        webSecurity: false,
+        nodeIntegration: true,
+        contextIsolation: false,
+        enableRemoteModule: true,
+        webviewTagEnabled: true,
+      },
     },
     frame: false,
     transparent: true,
     alwaysOnTop: true,
+    fullscreenable: false,
     skipTaskbar: false,
-    show: false,          // 先隐藏，等准备好了再显示
-    vibrancy: 'dark',     // macOS 毛玻璃效果
-    visualEffectState: 'active',
-    backgroundColor: '#00000000',
+    show: true, // 窗口默认显示
+    vibrancy: "dark", // macOS 毛玻璃效果
+    visualEffectState: "active",
+    backgroundColor: "#00000000",
+    vibrancy: "dark", // macOS 毛玻璃效果
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  mainWindow.loadFile(path.join(__dirname, "index.html"));
 
-  // 窗口准备好后显示
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
-  });
+    // 窗口准备好后显示
+    mainWindow.once("ready-to-show", () => {
+      mainWindow.show();
+      // 确保 Live2D 容器存在
+      if (!document.getElementById('live2d-container')) {
+        const container = document.createElement('div');
+        container.id = 'live2d-container';
+        container.style.position = 'absolute';
+        container.style.top = '0';
+        container.style.left = '0';
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.backgroundColor = 'transparent';
+        container.style.display = 'flex';
+        container.style.justifyContent = 'center';
+        container.style.alignItems = 'center';
+        container.style.zIndex = '98';
+        container.style.pointerEvents = 'none';
+        document.body.appendChild(container);
+      }
+    });
 
   // 失去焦点时自动隐藏（类似 uTools）
-  mainWindow.on('blur', () => {
+  mainWindow.on("blur", () => {
     // 如果插件视图打开，可以在这里决定是否隐藏
     // mainWindow.hide();
   });
 
   // 开发工具
-  if (process.argv.includes('--debug')) {
+  if (process.argv.includes("--debug")) {
     mainWindow.webContents.openDevTools();
   }
 
@@ -138,7 +176,7 @@ function createWindow() {
 // ---------- 全局快捷键 ----------
 function registerShortcuts() {
   // Alt + V 呼出/隐藏
-  const ret = globalShortcut.register('Alt+V', () => {
+  const ret = globalShortcut.register("Alt+V", () => {
     if (mainWindow) {
       if (mainWindow.isVisible()) {
         mainWindow.hide();
@@ -156,11 +194,11 @@ function registerShortcuts() {
   }
 
   // Ctrl+Shift+P 打开插件管理
-  globalShortcut.register('Ctrl+Shift+P', () => {
+  globalShortcut.register("Ctrl+Shift+P", () => {
     if (mainWindow) {
       mainWindow.show();
       mainWindow.focus();
-      mainWindow.webContents.send('shark:open-plugins');
+      mainWindow.webContents.send("shark:open-plugins");
     }
   });
 }
@@ -172,19 +210,19 @@ app.whenReady().then(() => {
   registerShortcuts();
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-app.on('activate', () => {
+app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
 });
 
 // 清理快捷键
-app.on('will-quit', () => {
+app.on("will-quit", () => {
   globalShortcut.unregisterAll();
 });

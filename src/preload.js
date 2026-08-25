@@ -37,12 +37,21 @@ contextBridge.exposeInMainWorld('sharkPlugin', {
   pluginReady: (pluginName) => ipcRenderer.send('shark:plugin-ready', pluginName),
   closeWindow: () => ipcRenderer.send('shark:close-window'),
   
-  // 插件数据存储（示例）
-  storage: {
-    set: (key, value) => ipcRenderer.invoke('shark:storage-set', key, value),
-    get: (key) => ipcRenderer.invoke('shark:storage-get', key),
-    remove: (key) => ipcRenderer.invoke('shark:storage-remove', key),
-  },
+   // 插件数据存储（示例）
+   storage: {
+     set: (key, value) => ipcRenderer.invoke('shark:storage-set', key, value),
+     
+     get: (key) => ipcRenderer.invoke('shark:storage-get', key),
+     
+     remove: (key) => ipcRenderer.invoke('shark:storage-remove', key),
+   },
+
+   // Live2D 显示配置
+   live2d: {
+     container: 'live2d-container',
+     model: 'model.json',
+     transparent: true
+   },
   
   // 系统通知
   notify: (title, body) => ipcRenderer.send('shark:notification', title, body),

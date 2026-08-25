@@ -5,6 +5,32 @@
   <meta charset="UTF-8" />
   <title>🦈 鲨鲨工具</title>
   <style>
+  #live2d-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 98;
+    pointer-events: none;
+  }
+  #live2d-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 98;
+    pointer-events: none;
+  }
     /* ===== 全局 ===== */
     * {
       margin: 0;
@@ -245,21 +271,43 @@
     }
 
     /* 空状态 */
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #6c7086;
-    }
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c7086;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
 
     .empty-state .empty-icon {
+  content: '🧩';
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+  filter: brightness(0.8);
+}
       font-size: 48px;
       margin-bottom: 12px;
       opacity: 0.5;
     }
 
-    .empty-state .empty-text {
-      font-size: 14px;
-    }
+.empty-state .empty-text {
+  font-size: 14px;
+  color: #6c7086;
+  line-height: 1.4;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
 
     /* ===== 插件视图 (WebView) ===== */
     #pluginViewContainer {

@@ -5,13 +5,15 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "electron . --debug"
+    "dev": "electron ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "electron": "^43.0.0"
+    "electron": "^43.0.0",
+    "pixi-live2d-display": "^0.3.1",
+    "pixi.js": "^8.20.0"
   }
 }
