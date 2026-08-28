@@ -1,0 +1,9 @@
+{
+  "name": "todo",
+  "version": "1.0.0",
+  "description": "📝 待办清单：新增/完成待办时，桌宠会弹出对话框提醒",
+  "icon": "📝",
+  "features": [
+    { "code": "todo", "explain": "待办清单", "cmds": ["todo", "待办"], "icon": "📝" }
+  ]
+}

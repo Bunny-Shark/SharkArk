@@ -1,0 +1,111 @@
+<!-- plugins/todo/index.html — 待办清单插件 -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: transparent;
+      color: #cdd6f4;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size: 13px;
+      padding: 14px 16px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .todo-head { font-size: 13px; color: #89b4fa; margin-bottom: 10px; }
+    .todo-form { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    #todoInput {
+      flex: 1; min-width: 120px;
+      padding: 7px 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #cdd6f4;
+      font-size: 13px;
+      outline: none;
+    }
+    #todoInput:focus { border-color: rgba(137, 180, 250, 0.5); }
+    .todo-form select,
+    .todo-form input[type="time"] {
+      padding: 7px 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #cdd6f4;
+      font-size: 12px;
+      outline: none;
+    }
+    .todo-form select option { background: #1e2030; }
+    .todo-form button {
+      padding: 7px 14px;
+      background: rgba(137, 180, 250, 0.15);
+      border: 1px solid rgba(137, 180, 250, 0.35);
+      border-radius: 8px;
+      color: #cdd6f4;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .todo-form button:hover { background: rgba(137, 180, 250, 0.3); }
+    #cancelEditBtn { display: none; }
+    #cancelEditBtn.show { display: block; }
+    #todoList { list-style: none; flex: 1; overflow-y: auto; }
+    #todoList li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #todoList li:hover { background: rgba(255, 255, 255, 0.05); }
+    #todoList .check {
+      width: 16px; height: 16px;
+      border: 1px solid rgba(137, 180, 250, 0.5);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: #a6e3a1;
+    }
+    #todoList li.done .check::after { content: "✓"; }
+    #todoList li.done .text { text-decoration: line-through; color: #6c7086; }
+    #todoList .text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #todoList .remind-badge {
+      flex-shrink: 0;
+      font-size: 10px;
+      color: #fab387;
+      background: rgba(250, 179, 135, 0.12);
+      border: 1px solid rgba(250, 179, 135, 0.3);
+      border-radius: 6px;
+      padding: 2px 6px;
+      cursor: pointer;
+    }
+    #todoList .del { color: #6c7086; font-size: 12px; padding: 0 4px; flex-shrink: 0; }
+    #todoList .del:hover { color: #f38ba8; }
+    .todo-empty { color: #6c7086; text-align: center; padding: 20px 0; }
+    .todo-tip { color: #45475a; font-size: 11px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="todo-head">📝 待办清单</div>
+  <div class="todo-form">
+    <input id="todoInput" placeholder="待办内容…" spellcheck="false" />
+    <input id="todoTime" type="time" title="每天定时提醒" />
+    <select id="todoInterval" title="间隔循环提醒">
+      <option value="">不重复</option>
+      <option value="1">每 1 分钟</option>
+      <option value="5">每 5 分钟</option>
+      <option value="15">每 15 分钟</option>
+      <option value="30">每 30 分钟</option>
+      <option value="60">每 60 分钟</option>
+    </select>
+    <button id="saveBtn">添加</button>
+    <button id="cancelEditBtn">取消</button>
+  </div>
+  <ul id="todoList"></ul>
+  <div class="todo-tip">到点提醒时桌宠会弹对话框，可选择「完成」或「稍后」。点击条目上的 ⏰ 徽标可修改提醒设置。</div>
+  <script src="./renderer.js"></script>
+</body>
+</html>

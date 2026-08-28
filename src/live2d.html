@@ -1,0 +1,479 @@
+<!-- src/live2d.html — 桌面 Live2D 宠物窗口 + Alt+Space 搜索面板 + 模型切换栏 -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Live2D</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      /* 可点击状态下按住空白处即可拖动窗口 */
+      -webkit-app-region: drag;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    /* ===== 搜索面板（Alt+Space 弹出）===== */
+    #searchPanel {
+      display: none;
+      position: absolute;
+      top: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 62%;
+      z-index: 50;
+    }
+
+    #searchPanel.open {
+      display: block;
+    }
+
+    #searchInput {
+      -webkit-app-region: no-drag;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 11px 16px;
+      background: rgba(26, 27, 38, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(137, 180, 250, 0.4);
+      border-radius: 12px;
+      color: #cdd6f4;
+      font-size: 14px;
+      outline: none;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    }
+
+    #searchInput::placeholder {
+      color: #6c7086;
+    }
+
+    /* ===== 桌宠两侧的软件图标位 ===== */
+    .app-slot {
+      -webkit-app-region: no-drag;
+      display: none;
+      position: absolute;
+      width: 76px;
+      padding: 6px 2px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.15s;
+      box-sizing: border-box;
+    }
+
+    .app-slot.visible {
+      display: block;
+    }
+
+    .app-slot:hover {
+      background: rgba(26, 27, 38, 0.75);
+    }
+
+    .app-slot img {
+      width: 30px; /* 图标源为 48px，缩小显示保证清晰 */
+      height: 30px;
+      display: block;
+      margin: 0 auto 3px;
+    }
+
+    .app-slot .app-name {
+      font-size: 10px;
+      color: #cdd6f4;
+      line-height: 1.3;
+      max-height: 26px;
+      overflow: hidden;
+      word-break: break-all;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+
+    /* ===== 底部工具条：模型切换 / 快速启动 / Live2D 信息 ===== */
+    #modelBar {
+      -webkit-app-region: no-drag;
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 60;
+    }
+
+    .bar-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(26, 27, 38, 0.85);
+      border: 1px solid rgba(137, 180, 250, 0.35);
+      color: #cdd6f4;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .bar-btn:hover {
+      border-color: rgba(137, 180, 250, 0.7);
+    }
+
+    #modelChips {
+      display: none;
+      gap: 6px;
+    }
+
+    #modelBar.expanded #modelChips {
+      display: flex;
+    }
+
+    .model-chip {
+      padding: 5px 12px;
+      border-radius: 10px;
+      background: rgba(26, 27, 38, 0.85);
+      border: 1px solid rgba(137, 180, 250, 0.25);
+      color: #cdd6f4;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+
+    .model-chip:hover {
+      border-color: rgba(137, 180, 250, 0.7);
+    }
+
+    /* ===== 插件视图（webview 覆盖层）===== */
+    #pluginViewContainer {
+      display: none;
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      bottom: 56px;
+      background: rgba(26, 27, 38, 0.96);
+      border: 1px solid rgba(137, 180, 250, 0.3);
+      border-radius: 12px;
+      overflow: hidden;
+      z-index: 40;
+      -webkit-app-region: no-drag;
+      flex-direction: column;
+    }
+
+    #pluginViewContainer.open {
+      display: flex;
+    }
+
+    #pluginViewContainer .plugin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 14px;
+      background: rgba(0, 0, 0, 0.4);
+      font-size: 12px;
+      color: #a6adc8;
+      flex-shrink: 0;
+    }
+
+    #closePluginBtn {
+      background: none;
+      border: none;
+      color: #6c7086;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    #closePluginBtn:hover {
+      color: #f38ba8;
+    }
+
+    #pluginView {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: transparent;
+    }
+
+    #pluginChips {
+      display: none;
+      gap: 6px;
+    }
+
+    #pluginChips.open {
+      display: flex;
+    }
+
+    /* ===== Live2D 信息弹窗 ===== */
+    #infoPopup {
+      display: none;
+      position: absolute;
+      bottom: 54px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(26, 27, 38, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(137, 180, 250, 0.35);
+      border-radius: 10px;
+      padding: 10px 14px;
+      z-index: 70;
+      font-size: 11px;
+      color: #cdd6f4;
+      min-width: 190px;
+      -webkit-app-region: no-drag;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+
+    #infoPopup.open {
+      display: block;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    #infoPopup .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 2px 0;
+    }
+
+    #infoPopup .k {
+      color: #6c7086;
+    }
+
+    #infoPopup .motion-title {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      color: #6c7086;
+      font-size: 10px;
+    }
+
+    #infoPopup .motion-group {
+      margin-top: 5px;
+      color: #89b4fa;
+      font-size: 10px;
+    }
+
+    #infoPopup .motion-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 3px;
+    }
+
+    #infoPopup .motion-chip {
+      padding: 3px 8px;
+      border-radius: 8px;
+      background: rgba(137, 180, 250, 0.12);
+      border: 1px solid rgba(137, 180, 250, 0.25);
+      font-size: 10px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    #infoPopup .motion-chip:hover {
+      background: rgba(137, 180, 250, 0.28);
+    }
+
+    #infoPopup .motion-empty {
+      margin-top: 4px;
+      color: #6c7086;
+      font-size: 10px;
+    }
+
+    /* ===== 桌宠对话框气泡（插件通知等）===== */
+    #bubble {
+      display: none;
+      position: absolute;
+      transform: translateX(-50%);
+      max-width: 240px;
+      padding: 9px 13px;
+      background: rgba(26, 27, 38, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(137, 180, 250, 0.4);
+      border-radius: 12px;
+      color: #cdd6f4;
+      font-size: 12px;
+      line-height: 1.5;
+      z-index: 80;
+      word-break: break-all;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+      -webkit-app-region: no-drag;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+
+    #bubble.show {
+      display: block;
+      animation: bubbleIn 0.18s ease-out;
+    }
+
+    @keyframes bubbleIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    #bubble::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 7px solid rgba(26, 27, 38, 0.94);
+    }
+
+    #bubble .bubble-title {
+      color: #89b4fa;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    #bubble .bubble-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      margin-top: 9px;
+    }
+
+    #bubble .bubble-btn {
+      padding: 4px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(137, 180, 250, 0.35);
+      background: rgba(137, 180, 250, 0.12);
+      color: #cdd6f4;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    #bubble .bubble-btn:hover {
+      background: rgba(137, 180, 250, 0.3);
+    }
+
+    /* ===== 快捷键设置面板 ===== */
+    #hotkeyPopup {
+      display: none;
+      position: absolute;
+      bottom: 54px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(26, 27, 38, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(137, 180, 250, 0.35);
+      border-radius: 10px;
+      padding: 10px 14px;
+      z-index: 70;
+      font-size: 11px;
+      color: #cdd6f4;
+      min-width: 230px;
+      -webkit-app-region: no-drag;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+
+    #hotkeyPopup.open {
+      display: block;
+    }
+
+    #hotkeyPopup .hk-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 5px 6px;
+      margin-top: 3px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #hotkeyPopup .hk-row:hover {
+      background: rgba(137, 180, 250, 0.1);
+    }
+
+    #hotkeyPopup .hk-val {
+      padding: 2px 10px;
+      border-radius: 6px;
+      background: rgba(137, 180, 250, 0.12);
+      border: 1px solid rgba(137, 180, 250, 0.25);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    #hotkeyPopup .hk-val.capturing {
+      background: rgba(250, 179, 135, 0.15);
+      border-color: rgba(250, 179, 135, 0.5);
+      color: #fab387;
+    }
+
+    #hotkeyPopup .hk-tip {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      color: #6c7086;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 搜索输入框 -->
+  <div id="searchPanel">
+    <input id="searchInput" type="text" placeholder="搜索软件，回车启动…" spellcheck="false" />
+  </div>
+
+  <!-- 软件图标卡（最多 6 个，位置由 live2d.js 计算） -->
+  <div id="appSlots"></div>
+
+  <!-- 插件视图覆盖层 -->
+  <div id="pluginViewContainer">
+    <div class="plugin-header">
+      <span id="pluginTitle">🧩 插件</span>
+      <button id="closePluginBtn" title="关闭插件">✕</button>
+    </div>
+    <webview
+      id="pluginView"
+      preload="./preload.js"
+      partition="persist:shark-plugins"
+    ></webview>
+  </div>
+
+  <!-- 底部工具条：模型切换 / 快速启动 / 插件 / Live2D 信息 / 快捷键设置 -->
+  <div id="modelBar">
+    <button id="modelToggle" class="bar-btn" title="切换模型">🎭</button>
+    <button id="launchBtn" class="bar-btn" title="应用快速启动">🚀</button>
+    <button id="pluginBtn" class="bar-btn" title="插件">🧩</button>
+    <button id="infoBtn" class="bar-btn" title="Live2D 信息">ℹ️</button>
+    <button id="hotkeyBtn" class="bar-btn" title="快捷键设置">⌨️</button>
+    <div id="modelChips"></div>
+    <div id="pluginChips"></div>
+  </div>
+
+  <!-- Live2D 信息弹窗 -->
+  <div id="infoPopup"></div>
+
+  <!-- 快捷键设置面板 -->
+  <div id="hotkeyPopup"></div>
+
+  <!-- 桌宠对话框气泡（插件通知） -->
+  <div id="bubble"></div>
+
+  <!-- 顺序不能变：PixiJS → Cubism 2 核心 → Cubism 4 核心 → pixi-live2d-display(全量，支持两代模型) -->
+  <script src="../node_modules/pixi.js/dist/browser/pixi.min.js"></script>
+  <script src="../assets/vendor/live2d.min.js"></script>
+  <script src="../assets/vendor/live2dcubismcore.min.js"></script>
+  <script src="../node_modules/pixi-live2d-display/dist/index.min.js"></script>
+  <script src="./live2d.js"></script>
+</body>
+</html>
